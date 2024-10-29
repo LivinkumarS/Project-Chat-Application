@@ -48,7 +48,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 15px;
+    padding: 5px 8px;
     background: white;
     position: absolute;
     left: 0;
@@ -67,7 +67,7 @@
 }
 
 .chat-box input{
-    padding: 15px 20px;
+    padding: 10px 15px;
     flex: 1;
     outline: none;
     border: none;
@@ -85,7 +85,7 @@
 }
 
 .r-msg div img, .s-msg div img{
-    width: 50px;
+    width: 30px;
     aspect-ratio: 1/1;
     border-radius: 50%;
     cursor: pointer;
@@ -110,8 +110,9 @@
     border-radius: 8px 8px 8px 0 ;
     padding: 8px;
     font-weight: 400;
-    font-size: 15px;
+    font-size: 13px;
     max-width: 300px;
+
 }
 
 .s-msg .msg{
@@ -120,12 +121,13 @@
     border-radius: 8px 8px 0 08px ;
     padding: 8px;
     font-weight: 400;
-    font-size: 15px;
+    font-size: 13px;
     max-width: 300px;
+
 }
 
 .r-msg div p, .s-msg div p{
-    font-size: smaller;
+    font-size: 10px;
     color: #424242;
     
 }

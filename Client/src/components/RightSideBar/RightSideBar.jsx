@@ -2,6 +2,8 @@ import React from "react";
 import "./RightSideBar.css";
 import { assets } from "../../assets/assets";
 import { GoDotFill } from "react-icons/go";
+import { signOut } from "firebase/auth";
+import { logout } from "../../config/firebase";
 
 export default function RightSideBar() {
   return (
@@ -25,10 +27,23 @@ export default function RightSideBar() {
           <img src={assets.random1} alt="" />
           <img src={assets.random1} alt="" />
           <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
+          <img src={assets.random1} alt="" />
         </div>
       </div>
 
-      <button className="log-out">LogOut</button>
+      <button className="log-out" onClick={()=>logout()}>
+        LogOut
+      </button>
     </div>
   );
 }

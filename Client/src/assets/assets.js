@@ -4,6 +4,7 @@ import chatperson2 from "./chatperson2.jpeg";
 import chatperson3 from "./chatperson3.jpeg";
 import chatperson4 from "./chatperson4.jpeg";
 import random1 from "./random1.jpeg";
+import blankProfile from "./blankprofile.png";
 export const assets = {
   Logo,
   chatperson1,
@@ -11,4 +12,5 @@ export const assets = {
   chatperson3,
   chatperson4,
   random1,
+  blankProfile,
 };

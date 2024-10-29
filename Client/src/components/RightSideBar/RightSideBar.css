@@ -13,7 +13,7 @@
     margin: auto;
 }
 .rs-profile img{
-    width: 160px;
+    width: 100px;
     aspect-ratio: 1/1;
     border-radius: 50%;
 }
@@ -49,26 +49,27 @@
 
 .rs-media div{
     overflow-y: scroll;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 5px;
-    row-gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-top: 8px;
     height: auto;
-    max-height: 270px;
+    max-height: 200px;
 }
 
 .rs-media div img{
-    width: 80px;
+    width: 60px;
 }
 
 button.log-out{
     padding: 7px 10px;
-    width: 250px;
+    width: 200px;
     border-radius: 30px;
     background-color: #024cAA;
     color: #fff;
-    font-size: large;
+    font-size: medium;
     font-weight: 600;
     cursor: pointer;
     position: absolute;
