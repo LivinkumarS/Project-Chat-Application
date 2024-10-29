@@ -77,3 +77,8 @@ button.log-out{
     left: 50%;
     transform: translateX(-50%);
 }
+
+.empty{
+    font-size: smaller;
+    color: gray;
+}

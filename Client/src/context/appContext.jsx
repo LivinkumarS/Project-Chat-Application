@@ -10,6 +10,9 @@ const AppContextProvider = (props) => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [chatData, setChatData] = useState(null);
+  const [messagesId, setMessagesId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [chatUser, setChatUser] = useState(null);
 
   const loadUserData = async (uid) => {
     try {
@@ -22,7 +25,6 @@ const AppContextProvider = (props) => {
       } else {
         navigate("/profile");
       }
-
       updateDoc(userRef, {
         lastSeen: Date.now(),
       });
@@ -61,7 +63,7 @@ const AppContextProvider = (props) => {
         unSub();
       };
     }
-  },[userData]);
+  }, [userData]);
 
   const value = {
     userData,
@@ -69,6 +71,12 @@ const AppContextProvider = (props) => {
     chatData,
     setChatData,
     loadUserData,
+    messagesId,
+    setMessagesId,
+    messages,
+    setMessages,
+    chatUser,
+    setChatUser,
   };
 
   return (

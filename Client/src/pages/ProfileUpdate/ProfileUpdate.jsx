@@ -26,6 +26,7 @@ export default function ProfileUpdate() {
     e.preventDefault();
     if (!prevImg && !image) {
       toast.error("Upload profile photo!");
+      return
     }
     const docRef = doc(db, "users", uid);
     if (image) {

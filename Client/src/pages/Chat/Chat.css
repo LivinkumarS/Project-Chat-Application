@@ -22,3 +22,9 @@
     grid-template-columns: 1fr 2fr 1fr;
     background-color: #fff;
 }
+
+.loading{
+    font-size: larger;
+    font-weight: bolder;
+    color: #fff;
+}
