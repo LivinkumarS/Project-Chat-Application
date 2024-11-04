@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import "./ChatBox.css";
 import { assets } from "../../assets/assets";
 import { GoDotFill } from "react-icons/go";
-import { IoIosHelpCircleOutline } from "react-icons/io";
+import { IoIosHelpCircleOutline, IoMdImage } from "react-icons/io";
 import { IoIosSend } from "react-icons/io";
 import { IoIosAttach } from "react-icons/io";
 import { AppContext } from "../../context/appContext";
@@ -15,13 +15,14 @@ import {
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { toast } from "react-toastify";
-import upload from "../../lib/upload.js";
+import upload, { uploadFile } from "../../lib/upload.js";
 
 export default function ChatBox() {
   const { chatUser, messages, messagesId, setMessages, userData } =
     useContext(AppContext);
   const [input, setInput] = useState("");
   const imageRef = useRef();
+  const fileRef = useRef();
 
   useEffect(() => {
     if (messagesId) {
@@ -131,6 +132,51 @@ export default function ChatBox() {
     }
   };
 
+  const sendFile = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const fileURL = await uploadFile(file);
+        if (fileURL && messagesId) {
+          await updateDoc(doc(db, "messages", messagesId), {
+            messages: arrayUnion({
+              sId: userData.id,
+              file: fileURL,
+              fileName: file.name,
+              createdAt: new Date(),
+            }),
+          });
+          const userIDs = [chatUser.rId, userData.id];
+          userIDs.forEach(async (id) => {
+            const userChatsRef = doc(db, "chats", id);
+            const userChatsSnapshot = await getDoc(userChatsRef);
+            if (userChatsSnapshot.exists()) {
+              const userChatData = userChatsSnapshot.data();
+              console.log(userChatData.chatData);
+
+              const chatIndex = await userChatData.chatData.findIndex(
+                (c) => c.messageId === messagesId
+              );
+              console.log(chatIndex);
+
+              userChatData.chatData[chatIndex].lastMessage = "file";
+              userChatData.chatData[chatIndex].updatedAt = Date.now();
+              if (userChatData.chatData[chatIndex].rId === userData.id) {
+                userChatData.chatData[chatIndex].messageSeen = false;
+              }
+              await updateDoc(userChatsRef, {
+                chatData: userChatData.chatData,
+              });
+            }
+          });
+        }
+      } catch (error) {
+        toast.error("The file size exceeds the 25MB limit.");
+        console.error(error);
+      }
+    }
+  };
+
   return chatUser ? (
     <div className="chat-box">
       <div className="chat-user">
@@ -162,6 +208,12 @@ export default function ChatBox() {
                 className="msg-image"
                 src={msg.image}
               />
+            ) : msg["file"] ? (
+              <div className="fileContainer">
+                <a href={msg.file} download>
+                  {msg.fileName}
+                </a>
+              </div>
             ) : (
               <p className="msg">{msg.text}</p>
             )}
@@ -195,7 +247,11 @@ export default function ChatBox() {
           accept="image/png, image/jpeg"
           hidden
         />
+        <input type="file" onChange={sendFile} ref={fileRef} hidden />
         <div className="attach-file" onClick={() => imageRef.current.click()}>
+          <IoMdImage />
+        </div>
+        <div className="attach-file" onClick={() => fileRef.current.click()}>
           <IoIosAttach />
         </div>
         <div onClick={sendMessage} className="send">
