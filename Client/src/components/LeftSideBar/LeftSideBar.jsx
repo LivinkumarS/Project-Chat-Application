@@ -14,6 +14,7 @@ import {
   serverTimestamp,
   updateDoc,
   arrayUnion,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "../../config/firebase.js";
 import { AppContext } from "../../context/appContext";
@@ -31,7 +32,6 @@ export default function LeftSideBar() {
   } = useContext(AppContext);
   const [user, setUser] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
-  
 
   const inputHandler = async (e) => {
     try {
@@ -92,7 +92,7 @@ export default function LeftSideBar() {
         }),
       });
       setShowSearch(false);
-      toast.success("User added to yout chat list")
+      toast.success("User added to yout chat list");
     } catch (error) {
       toast.error(error.message);
       console.error(error);
@@ -100,8 +100,23 @@ export default function LeftSideBar() {
   };
 
   const setChat = async (item) => {
-    setMessagesId(item.messageId);
-    setChatUser(item);
+    try {
+      setMessagesId(item.messageId);
+      setChatUser(item);
+      const userChatsRef = doc(db, "chats", userData.id);
+      const userChatsSnapshot = await getDoc(userChatsRef);
+      const userChatsData = userChatsSnapshot.data();
+      const chatIndex = userChatsData.chatData.findIndex(
+        (c) => c.messageId === item.messageId
+      );
+      userChatsData.chatData[chatIndex].messageSeen = true;
+      await updateDoc(userChatsRef, {
+        chatData: userChatsData.chatData,
+      });
+    } catch (error) {
+      toast.error(error.message);
+      console.error(error);
+    }
   };
 
   return (
@@ -147,7 +162,11 @@ export default function LeftSideBar() {
               onClick={() => {
                 setChat(item);
               }}
-              className="friends"
+              className={`friends ${
+                item.messageSeen || item.messageId === messagesId
+                  ? ""
+                  : "border"
+              }`}
               key={index}
             >
               <img src={item.userData.avatar} alt="" />

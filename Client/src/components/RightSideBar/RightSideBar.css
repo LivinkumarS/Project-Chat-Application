@@ -82,3 +82,7 @@ button.log-out{
     font-size: smaller;
     color: gray;
 }
+
+.mediaImg{
+    max-height: 100px;
+}

@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "./ChatBox.css";
 import { assets } from "../../assets/assets";
 import { GoDotFill } from "react-icons/go";
-import { IoIosHelpCircleOutline } from "react-icons/io"; 
+import { IoIosHelpCircleOutline } from "react-icons/io";
 import { IoIosSend } from "react-icons/io";
 import { IoIosAttach } from "react-icons/io";
 import { AppContext } from "../../context/appContext";
@@ -15,17 +15,18 @@ import {
 } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { toast } from "react-toastify";
+import upload from "../../lib/upload.js";
 
 export default function ChatBox() {
   const { chatUser, messages, messagesId, setMessages, userData } =
     useContext(AppContext);
   const [input, setInput] = useState("");
+  const imageRef = useRef();
 
   useEffect(() => {
     if (messagesId) {
       const unSub = onSnapshot(doc(db, "messages", messagesId), (res) => {
         setMessages(res.data().messages.reverse());
-        console.log(res.data().messages.reverse());
       });
       return () => {
         unSub();
@@ -86,15 +87,61 @@ export default function ChatBox() {
     }
   };
 
+  const sendImage = async (e) => {
+    const image = e.target.files[0];
+    if (image) {
+      try {
+        const fileURL = await upload(image);
+        if (fileURL && messagesId) {
+          await updateDoc(doc(db, "messages", messagesId), {
+            messages: arrayUnion({
+              sId: userData.id,
+              image: fileURL,
+              createdAt: new Date(),
+            }),
+          });
+          const userIDs = [chatUser.rId, userData.id];
+          userIDs.forEach(async (id) => {
+            const userChatsRef = doc(db, "chats", id);
+            const userChatsSnapshot = await getDoc(userChatsRef);
+            if (userChatsSnapshot.exists()) {
+              const userChatData = userChatsSnapshot.data();
+              console.log(userChatData.chatData);
+
+              const chatIndex = await userChatData.chatData.findIndex(
+                (c) => c.messageId === messagesId
+              );
+              console.log(chatIndex);
+
+              userChatData.chatData[chatIndex].lastMessage = "image";
+              userChatData.chatData[chatIndex].updatedAt = Date.now();
+              if (userChatData.chatData[chatIndex].rId === userData.id) {
+                userChatData.chatData[chatIndex].messageSeen = false;
+              }
+              await updateDoc(userChatsRef, {
+                chatData: userChatData.chatData,
+              });
+            }
+          });
+        }
+      } catch (error) {
+        toast.error(error.message);
+        console.error(error);
+      }
+    }
+  };
+
   return chatUser ? (
     <div className="chat-box">
       <div className="chat-user">
         <div className="user">
           <img src={chatUser.userData.avatar} alt="profile" />
           <p>{chatUser.userData.name} </p>
-          <span>
-            <GoDotFill />
-          </span>
+          {Date.now() - chatUser.userData.lastSeen <= 70000 && (
+            <span>
+              <GoDotFill />
+            </span>
+          )}
         </div>
         <div className="help">
           <IoIosHelpCircleOutline />
@@ -107,7 +154,18 @@ export default function ChatBox() {
             key={index}
             className={msg.sId === userData.id ? "s-msg" : "r-msg"}
           >
-            <p className="msg">{msg.text}</p>
+            {msg["image"] ? (
+              <img
+                onClick={() => {
+                  window.open(msg.image);
+                }}
+                className="msg-image"
+                src={msg.image}
+              />
+            ) : (
+              <p className="msg">{msg.text}</p>
+            )}
+
             <div>
               <img
                 src={
@@ -130,8 +188,14 @@ export default function ChatBox() {
           type="text"
           placeholder="Send a message..."
         />
-        <input type="file" hidden />
-        <div className="attach-file">
+        <input
+          type="file"
+          onChange={sendImage}
+          ref={imageRef}
+          accept="image/png, image/jpeg"
+          hidden
+        />
+        <div className="attach-file" onClick={() => imageRef.current.click()}>
           <IoIosAttach />
         </div>
         <div onClick={sendMessage} className="send">

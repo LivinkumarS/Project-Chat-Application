@@ -108,3 +108,11 @@
 .sub-menu>*{
   cursor: pointer;
 }
+
+.friends.border>img{
+  border: 3px solid aqua;
+}
+
+.friends.friends.border>div>span{
+  color: aqua;
+}

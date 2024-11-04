@@ -149,3 +149,7 @@
     font-weight: bolder;
     color: green;
 }
+
+.msg-image{
+    max-width: 100px;
+}
