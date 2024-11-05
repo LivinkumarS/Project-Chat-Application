@@ -48,8 +48,17 @@ export default function LeftSideBar() {
               userExist = true;
             }
           });
-          if (!userExist) {
-            setUser(querySnap.docs[0].data());
+          const searchedUser = querySnap.docs[0].data();
+          const userDomain = userData.email.split("@")[1];
+          const searchedUserDomain = searchedUser.email.split("@")[1];
+
+          if (!userExist && userDomain === searchedUserDomain) {
+            setUser(searchedUser);
+          } else {
+            setUser(null);
+            if (userDomain !== searchedUserDomain) {
+              toast.error("You can only add users from the same domain.");
+            }
           }
         } else {
           setUser(null);
@@ -92,7 +101,7 @@ export default function LeftSideBar() {
         }),
       });
       setShowSearch(false);
-      toast.success("User added to yout chat list");
+      toast.success("User added to your chat list");
     } catch (error) {
       toast.error(error.message);
       console.error(error);
