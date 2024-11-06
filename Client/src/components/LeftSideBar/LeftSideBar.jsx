@@ -30,41 +30,27 @@ export default function LeftSideBar() {
     messagesId,
     setMessagesId,
   } = useContext(AppContext);
-  const [user, setUser] = useState(null);
+  const [users, setUsers] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   const inputHandler = async (e) => {
     try {
       const input = e.target.value;
+      setInputValue(input);
       if (input) {
         setShowSearch(true);
         const userRef = collection(db, "users");
-        const q = query(userRef, where("username", "==", input.toLowerCase()));
+        const q = query(userRef, where("username", ">=", input.toLowerCase()), where("username", "<=", input.toLowerCase() + "\uf8ff"));
         const querySnap = await getDocs(q);
-        if (!querySnap.empty && querySnap.docs[0].data().id !== userData.id) {
-          let userExist = false;
-          await chatData.map((user) => {
-            if (user.rId === querySnap.docs[0].data().id) {
-              userExist = true;
-            }
-          });
-          const searchedUser = querySnap.docs[0].data();
-          const userDomain = userData.email.split("@")[1];
-          const searchedUserDomain = searchedUser.email.split("@")[1];
 
-          if (!userExist && userDomain === searchedUserDomain) {
-            setUser(searchedUser);
-          } else {
-            setUser(null);
-            if (userDomain !== searchedUserDomain) {
-              toast.error("You can only add users from the same domain.");
-            }
-          }
-        } else {
-          setUser(null);
-        }
+        const userResults = querySnap.docs.map((doc) => doc.data()).filter((user) => user.id !== userData.id);
+        const userDomain = userData.email.split("@")[1];
+        const filteredUsers = userResults.filter((user) => user.email.split("@")[1] === userDomain);
+        setUsers(filteredUsers);
       } else {
         setShowSearch(false);
+        setUsers([]);
       }
     } catch (error) {
       toast.error(error.message);
@@ -72,11 +58,19 @@ export default function LeftSideBar() {
     }
   };
 
-  const addChat = async () => {
-    const messagesRef = collection(db, "messages");
-    const chatsRef = collection(db, "chats");
+  const addChat = async (user) => {
     try {
+      const isUserInChat = chatData.some(chat => chat.rId === user.id);
+
+      if (isUserInChat) {
+        toast.error("User is already in your chat list.");
+        return;
+      }
+
+      const messagesRef = collection(db, "messages");
+      const chatsRef = collection(db, "chats");
       const newMessageRef = doc(messagesRef);
+
       await setDoc(newMessageRef, {
         createdAt: serverTimestamp(),
         messages: [],
@@ -91,6 +85,7 @@ export default function LeftSideBar() {
           messageSeen: true,
         }),
       });
+
       await updateDoc(doc(chatsRef, userData.id), {
         chatData: arrayUnion({
           messageId: newMessageRef.id,
@@ -100,7 +95,9 @@ export default function LeftSideBar() {
           messageSeen: true,
         }),
       });
+
       setShowSearch(false);
+      setInputValue("");
       toast.success("User added to your chat list");
     } catch (error) {
       toast.error(error.message);
@@ -149,33 +146,28 @@ export default function LeftSideBar() {
           <CiSearch />
           <input
             onChange={inputHandler}
+            value={inputValue}
             type="text"
             placeholder="Search here..."
           />
         </div>
       </div>
       <div className="ls-list">
-        {showSearch && user ? (
-          <div className="friends" onClick={addChat}>
-            <img src={user.avatar} alt="" />
-            <div>
-              <p>{user.name}</p>
-              <span>
-                last seen:{new Date(user.lastSeen).toLocaleDateString()}
-              </span>
+        {showSearch && users.length > 0 ? (
+          users.map((user) => (
+            <div className="friends" key={user.id} onClick={() => addChat(user)}>
+              <img src={user.avatar} alt="" />
+              <div>
+                <p>{user.name}</p>
+                <span>last seen: {new Date(user.lastSeen).toLocaleDateString()}</span>
+              </div>
             </div>
-          </div>
+          ))
         ) : (
           chatData.map((item, index) => (
             <div
-              onClick={() => {
-                setChat(item);
-              }}
-              className={`friends ${
-                item.messageSeen || item.messageId === messagesId
-                  ? ""
-                  : "border"
-              }`}
+              onClick={() => setChat(item)}
+              className={`friends ${item.messageSeen || item.messageId === messagesId ? "" : "border"}`}
               key={index}
             >
               <img src={item.userData.avatar} alt="" />
